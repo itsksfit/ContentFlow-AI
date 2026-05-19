@@ -74,6 +74,22 @@ def write_script(
         )
         
         data = json.loads(response.choices[0].message.content)
+        
+        # Robust parsing for LLM outputting dicts instead of strings
+        for k in ['beat1', 'beat2', 'beat3', 'cta', 'full_script', 'est_duration_sec']:
+            if isinstance(data.get(k), dict):
+                data[k] = data[k].get('text', str(data[k]))
+            else:
+                data[k] = str(data.get(k, ""))
+                
+        if isinstance(data.get('word_count'), dict):
+            data['word_count'] = int(data['word_count'].get('count', 0))
+        elif not isinstance(data.get('word_count'), int):
+            try:
+                data['word_count'] = int(data.get('word_count', 0))
+            except:
+                data['word_count'] = len(data.get('full_script', '').split())
+                
         return ScriptResult(**data)
     except Exception as e:
         # Fallback in case of Groq error

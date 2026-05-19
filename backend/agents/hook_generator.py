@@ -94,22 +94,42 @@ def generate_hooks(
         data = json.loads(response.choices[0].message.content)
         
         hooks = []
-        for h in data.get("hooks", []):
+        for idx, h in enumerate(data.get("hooks", [])):
+            try:
+                num = int(h.get("number", idx + 1))
+            except:
+                num = idx + 1
+                
+            try:
+                score = float(h.get("confidence_score", 8.0))
+            except:
+                score = 8.0
+                
             hooks.append(Hook(
-                number=h.get("number", 1),
-                text=h.get("text", "Fallback hook"),
-                pattern_name=h.get("pattern_name", "Pattern"),
-                pattern_description=h.get("pattern_description", "Desc"),
+                number=num,
+                text=str(h.get("text", "Fallback hook")),
+                pattern_name=str(h.get("pattern_name", "Pattern")),
+                pattern_description=str(h.get("pattern_description", "Desc")),
                 matched_reel_views=f"{int((avg_v * random.uniform(0.8, 1.5)) / 1000)}K+",
-                confidence_score=h.get("confidence_score", 8.0),
-                recommended=(h.get("number") == data.get("recommended_hook_number"))
+                confidence_score=score,
+                recommended=(str(num) == str(data.get("recommended_hook_number")))
             ))
+            
+        rec_num = data.get("recommended_hook_number")
+        try:
+            rec_num = int(rec_num)
+        except:
+            rec_num = hooks[0].number if hooks else 1
+            
+        if not any(h.recommended for h in hooks) and hooks:
+            hooks[0].recommended = True
+            rec_num = hooks[0].number
             
         return HookResult(
             topic=topic,
             avg_views_matched=avg_v,
             hooks=hooks,
-            recommended_hook_number=data.get("recommended_hook_number", 1)
+            recommended_hook_number=rec_num
         )
     except Exception as e:
         # Fallback on error
