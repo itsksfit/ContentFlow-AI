@@ -37,6 +37,3 @@ Open a new terminal at the root of the project and run a simple HTTP server:
 python -m http.server 3000
 ```
 Then, open your browser and navigate to: **`http://localhost:3000`**
-
----
-*Built for creators. Powered by AI.*
