@@ -1,12 +1,16 @@
-"""
-Agent 03 — my-voice-writer
-Analyses user's past scripts and writes a new reel script
-in their exact tone: Hinglish, punchy, BEAT structure, comment CTA.
-"""
-import re
-from collections import Counter
-from typing import List
+import os
+import json
 from pydantic import BaseModel
+from typing import List
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+
+client = OpenAI(
+    api_key=os.getenv("GROQ_API_KEY"),
+    base_url="https://api.groq.com/openai/v1",
+)
 
 class VoiceAnalysis(BaseModel):
     vocabulary_words: List[str]
@@ -33,43 +37,47 @@ def write_script(
     tone: str,
     validated_topic: str,
 ) -> ScriptResult:
-    # 1. Very basic fake voice analysis
-    words = re.findall(r'\b\w+\b', voice_sample.lower())
-    common = [w[0] for w in Counter(words).most_common(10) if len(w[0]) > 3][:3]
-    if not common:
-        common = ["bhai", "samjho", "literally"]
-
-    # 2. Mock generation based on tone and niche
-    b1 = f"Agar tum {niche} mein grow karna chahte ho, aur tumhara topic '{topic}' hai, toh yeh galti mat karna."
-    b2 = f"Maine dekha hai log {topic} par bohot time waste karte hain. Reality mein tumhe sirf ek system chahiye."
-    b3 = f"Jab se maine yeh implement kiya, mera output 3x fast ho gaya aur stress zero."
+    prompt = f"""
+    You are an expert content script writer. Analyze the following voice sample to extract the user's tone, vocabulary, and Hinglish ratio.
+    Then, write a new 4-part short-form video script about '{topic}' (Niche: {niche}, Tone: {tone}).
+    The script must strictly have 4 parts: BEAT 1 (Intro/Problem), BEAT 2 (Context/Build-up), BEAT 3 (Solution/Value), and CTA.
     
-    if tone == "casual":
-        cta = f"Mera exact framework chahiye? '{topic[:5].upper()}' comment karo, main DM kar dunga."
-    elif tone == "educational":
-        cta = f"Full guide ke liye mujhe follow karo aur link in bio check karo."
-    else:
-        cta = f"Save this reel aur mujhe DM karo 'GROW' for details."
-
-    full = f"[BEAT 1]\n{b1}\n\n[BEAT 2]\n{b2}\n\n[BEAT 3]\n{b3}\n\n[CTA]\n{cta}"
+    Voice Sample:
+    "{voice_sample}"
     
-    wc = len(full.split())
-    dur = f"{max(25, wc * 60 // 130)}–{max(35, wc * 60 // 100)} sec"
-
-    return ScriptResult(
-        voice_analysis=VoiceAnalysis(
-            vocabulary_words=common,
-            avg_sentence_length="Short & Punchy",
-            hinglish_ratio="65% Hindi / 35% English",
-            energy=tone.capitalize(),
-            cta_style="High-converting DM trigger",
-            structure_pattern="BEAT 1 -> BEAT 2 -> BEAT 3 -> CTA"
-        ),
-        beat1=b1,
-        beat2=b2,
-        beat3=b3,
-        cta=cta,
-        full_script=full,
-        word_count=wc,
-        est_duration_sec=dur
-    )
+    Respond ONLY in valid JSON matching this exact structure:
+    {{
+        "voice_analysis": {{
+            "vocabulary_words": ["word1", "word2", "word3"],
+            "avg_sentence_length": "Short/Medium/Long",
+            "hinglish_ratio": "Percentage of Hindi vs English",
+            "energy": "Description of energy",
+            "cta_style": "Description of CTA style",
+            "structure_pattern": "BEAT 1 -> BEAT 2 -> BEAT 3 -> CTA"
+        }},
+        "beat1": "...",
+        "beat2": "...",
+        "beat3": "...",
+        "cta": "...",
+        "full_script": "Full combined script text",
+        "word_count": 0,
+        "est_duration_sec": "time in seconds"
+    }}
+    """
+    
+    try:
+        response = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"},
+            temperature=0.7
+        )
+        
+        data = json.loads(response.choices[0].message.content)
+        return ScriptResult(**data)
+    except Exception as e:
+        # Fallback in case of Groq error
+        return ScriptResult(
+            voice_analysis=VoiceAnalysis(vocabulary_words=["error"], avg_sentence_length="error", hinglish_ratio="error", energy="error", cta_style="error", structure_pattern="error"),
+            beat1="Error fetching from Groq API", beat2=str(e), beat3="", cta="", full_script=f"Error: {str(e)}", word_count=0, est_duration_sec="0s"
+        )
