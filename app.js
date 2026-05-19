@@ -108,7 +108,7 @@ document.getElementById('contentForm').addEventListener('submit', async (e) => {
 });
 
 async function runAgentsSequentially(payload) {
-    const apiBase = 'https://contentflow-backend-a450.onrender.com/api/agent';
+    const apiBase = 'http://127.0.0.1:8000/api/agent';
     let data = {};
 
     // Helper for fake progress animation
