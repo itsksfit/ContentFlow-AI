@@ -69,38 +69,41 @@ def write_script(
     
     # Deterministic Templates
     beat1_templates = [
-        "If you are still struggling with {topic} in {niche}, you need to stop and watch this.",
-        "Here is the brutal truth about {topic} that nobody in {niche} is telling you.",
-        "Everyone says {topic} is hard. But using this {niche} trick, I completely changed the game."
+        "Let's talk about {topic}. If you're in the {niche} space, you need to hear this.",
+        "The biggest mistake I see with {topic}? People completely ignore the basics.",
+        "I'm going to show you exactly how to handle {topic} without wasting your time."
     ]
     
     beat2_templates = [
-        "For months, I was doing it the old way. Then I discovered {validated_topic}, and it literally shifted my perspective.",
-        "Most people just copy-paste the same generic advice. But the real magic happens when you apply {validated_topic}.",
-        "I analyzed the top creators, and they all have one thing in common: {validated_topic}."
+        "For a long time, I struggled with this. Then I realized the power of {validated_topic}.",
+        "Most people just copy-paste the same generic advice. But the real game-changer is {validated_topic}.",
+        "If you look at the top performers, they all use {validated_topic} to their advantage."
     ]
     
     beat3_templates = [
-        "Step 1: Change your mindset. Step 2: Implement this framework. And boom, your {niche} workflow is instantly better.",
-        "The secret is simple: stop focusing on vanity metrics and start building a real foundation. That is how you win.",
-        "It only takes 10 minutes a day. Just set up your systems, let the data flow, and watch the results multiply."
+        "Step 1: Focus on the fundamentals. Step 2: Implement this system. Watch your results multiply.",
+        "The secret is simple: stop focusing on vanity metrics and start building a real foundation.",
+        "It only takes 10 minutes a day. Set up your systems properly and the rest takes care of itself."
     ]
     
     cta_templates = [
-        "Save this video for later and follow me for more daily {niche} tips!",
-        "Want my full blueprint? Comment 'GUIDE' below and I will DM it to you right now.",
-        "Hit that follow button if you want to master {niche} this year."
+        "Save this video for later and follow me for more {niche} tips!",
+        "Want the full blueprint? Comment 'GUIDE' below and I will DM it to you right now.",
+        "Hit that follow button if you want to master this."
     ]
     
-    # Build script
-    b1 = random.choice(beat1_templates).format(topic=topic, niche=niche)
-    b2 = random.choice(beat2_templates).format(validated_topic=validated_topic if validated_topic else "this secret strategy")
-    b3 = random.choice(beat3_templates).format(niche=niche)
-    cta = random.choice(cta_templates).format(niche=niche)
+    # Build script (cleaned inputs)
+    clean_topic = topic.strip().capitalize()
+    clean_niche = niche.strip().capitalize()
     
-    # Inject user's vocabulary if possible
+    b1 = random.choice(beat1_templates).format(topic=clean_topic, niche=clean_niche)
+    b2 = random.choice(beat2_templates).format(validated_topic=validated_topic if validated_topic else "this exact strategy")
+    b3 = random.choice(beat3_templates)
+    cta = random.choice(cta_templates).format(niche=clean_niche)
+    
+    # Inject user's vocabulary naturally if possible
     if analysis.vocabulary_words:
-        b1 = b1 + f" It's {analysis.vocabulary_words[0]}."
+        b1 = b1 + f" And honestly, it's {analysis.vocabulary_words[0]}."
         
     full_script = f"[BEAT 1: HOOK]\n{b1}\n\n[BEAT 2: CONTEXT]\n{b2}\n\n[BEAT 3: VALUE]\n{b3}\n\n[CALL TO ACTION]\n{cta}"
     word_count = len(full_script.split())
