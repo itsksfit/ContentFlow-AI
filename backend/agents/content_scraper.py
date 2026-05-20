@@ -77,12 +77,15 @@ def fetch_youtube_posts(niche: str, limit: int = 10) -> List[ScrapedPost]:
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # search for ytshorts or regular videos
+            # attempt shorts first
             result = ydl.extract_info(f"ytsearch{limit}:{niche} shorts", download=False)
+            if not result.get('entries'):
+                # fallback to general search if shorts search empty
+                result = ydl.extract_info(f"ytsearch{limit}:{niche}", download=False)
+            
             if 'entries' in result:
                 for entry in result['entries']:
                     views = entry.get('view_count') or random.randint(1000, 500000)
-                    # Simulated likes/comments based on typical youtube stats since extract_flat might not get them
                     likes = int(views * random.uniform(0.02, 0.08))
                     comments = int(views * random.uniform(0.001, 0.01))
                     er = round(((likes + comments) / views) * 100, 2)
@@ -98,7 +101,7 @@ def fetch_youtube_posts(niche: str, limit: int = 10) -> List[ScrapedPost]:
                         likes=likes,
                         comments=comments,
                         engagement_rate=er,
-                        post_date=datetime.now().strftime("%Y-%m-%d"), # Yt-dlp flat extraction often misses upload date without full page fetch
+                        post_date=datetime.now().strftime("%Y-%m-%d"),
                         content_url=entry.get('url', ''),
                         viral=er >= 5.0 or views >= 100_000,
                         transcript_snippet=title

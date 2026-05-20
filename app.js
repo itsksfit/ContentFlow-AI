@@ -98,9 +98,19 @@ document.getElementById('contentForm').addEventListener('submit', async (e) => {
     }
 
     try {
+        // Ping backend first — show warm-up notice if it takes >4s (Render cold start)
+        const apiBase = 'https://contentflow-backend-a450.onrender.com/api/agent';
+        const warmupTimer = setTimeout(() => {
+            document.getElementById('warmupBanner').style.display = 'flex';
+        }, 4000);
+        try {
+            await fetch('https://contentflow-backend-a450.onrender.com/', { method: 'GET', signal: AbortSignal.timeout(35000) });
+        } catch(e) { /* ignore ping errors */ }
+        clearTimeout(warmupTimer);
+        document.getElementById('warmupBanner').style.display = 'none';
         await runAgentsSequentially(payload);
     } catch (err) {
-        alert("Error running pipeline: " + err.message);
+        alert('Pipeline error: ' + err.message + '\n\nTip: The backend may still be waking up. Wait 30 seconds and try again.');
         console.error(err);
         document.getElementById('processingSection').classList.add('hidden');
         document.getElementById('input-section').classList.remove('hidden');

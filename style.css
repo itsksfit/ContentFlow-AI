@@ -221,6 +221,20 @@ body {
 .processing-header { text-align: center; margin-bottom: 50px; }
 .processing-title { font-family: var(--font2); font-size: 2.2rem; font-weight: 800; margin-bottom: 12px; color: var(--accent); text-shadow: 0 0 20px var(--blue-glow); }
 .processing-sub { color: var(--muted); font-size: 1.1rem; }
+.warmup-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: rgba(255, 180, 0, 0.08);
+  border: 1px solid rgba(255, 180, 0, 0.35);
+  border-radius: 10px;
+  color: #ffd166;
+  font-size: 0.95rem;
+  animation: fadeIn 0.4s ease;
+}
+.warmup-icon { font-size: 1.3rem; }
 
 .agent-row { 
   display: flex; gap: 24px; padding: 24px; background: rgba(0,0,0,0.2); 
