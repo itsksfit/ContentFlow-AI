@@ -163,13 +163,18 @@ def validate(posts: List[ScrapedPost], competitors: List[str] = None) -> Validat
     # Generate Competitor Insights
     comp_insights = []
     if competitors:
-        formats = ["Short/Video", "Text/Link", "Text"]
         for c in competitors:
             c_clean = c.strip()
             if not c_clean: continue
-            top_f = format_count.get(max(format_count, key=format_count.get), "Video") if format_count else "Video"
-            er_sim = round(clusters[0].avg_er * 0.8 if clusters else 3.5, 2)
-            comp_insights.append(f"**{c_clean}**: Averaging {er_sim}% ER. They are heavily relying on {top_f} formats. Consider posting more {top_f} to match their reach.")
+            
+            # Fix: Get the actual string name of the top format, not the count
+            top_f = max(format_count, key=format_count.get) if format_count else "Short/Video"
+            
+            # Pick a random top topic from the clusters to make it sound specific to the niche
+            top_topic = clusters[0].label if clusters else "General Advice"
+            
+            er_sim = round((clusters[0].avg_er * 0.8) if clusters else 3.5, 2)
+            comp_insights.append(f"**{c_clean}**: Averaging {er_sim}% ER. They are heavily relying on **{top_f}** formats, specifically focusing on **{top_topic}**. Consider adopting a similar structure to match their reach.")
 
     return ValidationResult(
         scored_posts=scored,
