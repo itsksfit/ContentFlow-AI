@@ -16,6 +16,7 @@ class ScriptResult(BaseModel):
     beat1: str
     beat2: str
     beat3: str
+    beat4: str
     cta: str
     full_script: str
     word_count: int
@@ -67,29 +68,36 @@ def write_script(
 ) -> ScriptResult:
     analysis = analyze_voice(voice_sample)
     
-    # Deterministic Templates
+    # Deterministic Templates (Longer & Mixed Hinglish)
     beat1_templates = [
-        "Let's talk about {topic}. If you're in the {niche} space, you need to hear this.",
-        "The biggest mistake I see with {topic}? People completely ignore the basics.",
-        "I'm going to show you exactly how to handle {topic} without wasting your time."
+        "Let's talk about {topic}. Agar aap {niche} space mein grow karna chahte ho, toh you need to hear this right now.",
+        "The biggest mistake I see with {topic}? Log basics ko completely ignore kar dete hain. Aur wahi unki growth rokta hai.",
+        "I'm going to show you exactly how to handle {topic}. Bina apna time waste kiye, yahan dhyan do."
     ]
     
     beat2_templates = [
-        "For a long time, I struggled with this. Then I realized the power of {validated_topic}.",
-        "Most people just copy-paste the same generic advice. But the real game-changer is {validated_topic}.",
-        "If you look at the top performers, they all use {validated_topic} to their advantage."
+        "For a long time, I struggled with this too. Mujhe lagta tha it's too difficult. Then I realized the power of {validated_topic}, aur usne sab badal diya.",
+        "Most people just copy-paste the same generic advice. Woh purane methods ab kaam nahi aate. But the real game-changer is {validated_topic}.",
+        "If you look at the top creators, they all use {validated_topic} to their advantage. Woh yeh secret aapko nahi batate, par yahi sach hai."
     ]
     
     beat3_templates = [
-        "Step 1: Focus on the fundamentals. Step 2: Implement this system. Watch your results multiply.",
-        "The secret is simple: stop focusing on vanity metrics and start building a real foundation.",
-        "It only takes 10 minutes a day. Set up your systems properly and the rest takes care of itself."
+        "Step 1: Focus on the fundamentals. Apni foundation strong karo. Step 2: Implement this system consistently. Aur uske baad, watch your results multiply overnight.",
+        "The secret is simple: stop focusing on vanity metrics. Views aur likes ke peechhe mat bhago. Start building a real foundation. Tabhi aap lambe time tak jeetoge.",
+        "It only takes 10 minutes a day. Apne systems ko properly set up karo, aur baaki sab apne aap flow hone lagega. Consistency is everything."
+    ]
+    
+    # Adding an extra beat for more content
+    beat4_templates = [
+        "Ek aur pro-tip: Don't overcomplicate things. Process ko simple rakho aur execute karo. That's the only way to beat the algorithm.",
+        "Yeh method try karke dekho, I promise you won't regret it. Results aana shuru honge toh aap khud hairan rah jaoge.",
+        "Remember, {niche} mein success overnight nahi aati. Par agar aap yeh framework use karte ho, aap apne competitors se 10x aage nikal jaoge."
     ]
     
     cta_templates = [
-        "Save this video for later and follow me for more {niche} tips!",
-        "Want the full blueprint? Comment 'GUIDE' below and I will DM it to you right now.",
-        "Hit that follow button if you want to master this."
+        "Save this video for later, share it with your friends, aur aisi daily {niche} tips ke liye mujhe follow karna mat bhoolna!",
+        "Want the full blueprint? Comment 'GUIDE' niche, and I will DM it to you right now. Aur haan, follow zaroor kar lena.",
+        "Hit that follow button agar aap iss saal sach mein grow karna chahte ho."
     ]
     
     # Build script (cleaned inputs)
@@ -99,13 +107,14 @@ def write_script(
     b1 = random.choice(beat1_templates).format(topic=clean_topic, niche=clean_niche)
     b2 = random.choice(beat2_templates).format(validated_topic=validated_topic if validated_topic else "this exact strategy")
     b3 = random.choice(beat3_templates)
+    b4 = random.choice(beat4_templates).format(niche=clean_niche)
     cta = random.choice(cta_templates).format(niche=clean_niche)
     
     # Inject user's vocabulary naturally if possible
     if analysis.vocabulary_words:
-        b1 = b1 + f" And honestly, it's {analysis.vocabulary_words[0]}."
+        b1 = b1 + f" And honestly, yeh strictly {analysis.vocabulary_words[0]} hai."
         
-    full_script = f"[BEAT 1: HOOK]\n{b1}\n\n[BEAT 2: CONTEXT]\n{b2}\n\n[BEAT 3: VALUE]\n{b3}\n\n[CALL TO ACTION]\n{cta}"
+    full_script = f"[BEAT 1: HOOK]\n{b1}\n\n[BEAT 2: CONTEXT]\n{b2}\n\n[BEAT 3: VALUE]\n{b3}\n\n[BEAT 4: EXTRA PRO-TIP]\n{b4}\n\n[CALL TO ACTION]\n{cta}"
     word_count = len(full_script.split())
     duration = max(15, round(word_count / 2.5)) # roughly 2.5 words per second
     
@@ -114,6 +123,7 @@ def write_script(
         beat1=b1,
         beat2=b2,
         beat3=b3,
+        beat4=b4,
         cta=cta,
         full_script=full_script,
         word_count=word_count,
