@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 import uvicorn
 
-from agents.content_scraper import generate_mock_posts, ScrapedPost
+from agents.content_scraper import fetch_real_posts, ScrapedPost
 from agents.content_validator import validate, ValidationResult
 from agents.voice_writer import write_script, ScriptResult
 from agents.hook_generator import generate_hooks, HookResult
@@ -69,7 +69,7 @@ def root():
 @app.post("/api/agent/scraper", response_model=List[ScrapedPost])
 def run_scraper(req: ScraperRequest):
     try:
-        posts = generate_mock_posts(req.niche, req.platform, req.competitors, req.days)
+        posts = fetch_real_posts(req.niche, req.platform, req.competitors, req.days)
         return posts
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -77,7 +77,7 @@ def run_scraper(req: ScraperRequest):
 @app.post("/api/agent/validator", response_model=ValidationResult)
 def run_validator(req: ValidatorRequest):
     try:
-        posts = generate_mock_posts(req.niche, req.platform, req.competitors, req.days)
+        posts = fetch_real_posts(req.niche, req.platform, req.competitors, req.days)
         result = validate(posts)
         return result
     except Exception as e:

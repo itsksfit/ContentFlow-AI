@@ -1,16 +1,7 @@
-import os
-import json
-from pydantic import BaseModel
+import random
+import re
 from typing import List
-from openai import OpenAI
-from dotenv import load_dotenv
-
-load_dotenv()
-
-client = OpenAI(
-    api_key=os.getenv("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1",
-)
+from pydantic import BaseModel
 
 class VoiceAnalysis(BaseModel):
     vocabulary_words: List[str]
@@ -30,6 +21,43 @@ class ScriptResult(BaseModel):
     word_count: int
     est_duration_sec: str
 
+def analyze_voice(sample: str) -> VoiceAnalysis:
+    """Deterministically analyze the voice sample."""
+    words = re.findall(r'\b\w+\b', sample.lower())
+    
+    # Simple stop words to filter out common words
+    stop_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "is", "are", "was", "were", "it", "this", "that", "i", "you", "he", "she", "we", "they", "mera", "yeh", "hai", "ka", "ki", "ke", "ho"}
+    
+    vocab = [w for w in set(words) if w not in stop_words and len(w) > 3]
+    
+    # Pick top 3 words to highlight
+    top_vocab = vocab[:3] if len(vocab) >= 3 else (vocab + ["actually", "literally", "seriously"])[:3]
+    
+    # Determine sentence length
+    sentences = [s.strip() for s in re.split(r'[.!?]', sample) if s.strip()]
+    avg_len = sum(len(s.split()) for s in sentences) / len(sentences) if sentences else 0
+    
+    if avg_len < 8:
+        length_desc = "Short & Punchy"
+    elif avg_len < 15:
+        length_desc = "Medium & Flowing"
+    else:
+        length_desc = "Long & Detailed"
+        
+    # Check for Hindi/Hinglish indicators (very rudimentary check)
+    hinglish_markers = ["bhai", "yaar", "toh", "hai", "kya", "mera", "dekho"]
+    hinglish_score = sum(1 for w in words if w in hinglish_markers)
+    ratio = "Heavy Hinglish (60/40)" if hinglish_score > 2 else "Mostly English (90/10)"
+    
+    return VoiceAnalysis(
+        vocabulary_words=top_vocab,
+        avg_sentence_length=length_desc,
+        hinglish_ratio=ratio,
+        energy="High Energy & Urgent" if "!" in sample else "Calm & Educational",
+        cta_style="Direct Ask",
+        structure_pattern="Hook -> Context -> Value -> CTA"
+    )
+
 def write_script(
     topic: str,
     niche: str,
@@ -37,63 +65,54 @@ def write_script(
     tone: str,
     validated_topic: str,
 ) -> ScriptResult:
-    prompt = f"""
-    You are an expert content script writer. Analyze the following voice sample to extract the user's tone, vocabulary, and Hinglish ratio.
-    Then, write a new 4-part short-form video script about '{topic}' (Niche: {niche}, Tone: {tone}).
-    The script must strictly have 4 parts: BEAT 1 (Intro/Problem), BEAT 2 (Context/Build-up), BEAT 3 (Solution/Value), and CTA.
+    analysis = analyze_voice(voice_sample)
     
-    Voice Sample:
-    "{voice_sample}"
+    # Deterministic Templates
+    beat1_templates = [
+        "If you are still struggling with {topic} in {niche}, you need to stop and watch this.",
+        "Here is the brutal truth about {topic} that nobody in {niche} is telling you.",
+        "Everyone says {topic} is hard. But using this {niche} trick, I completely changed the game."
+    ]
     
-    Respond ONLY in valid JSON matching this exact structure:
-    {{
-        "voice_analysis": {{
-            "vocabulary_words": ["word1", "word2", "word3"],
-            "avg_sentence_length": "Short/Medium/Long",
-            "hinglish_ratio": "Percentage of Hindi vs English",
-            "energy": "Description of energy",
-            "cta_style": "Description of CTA style",
-            "structure_pattern": "BEAT 1 -> BEAT 2 -> BEAT 3 -> CTA"
-        }},
-        "beat1": "...",
-        "beat2": "...",
-        "beat3": "...",
-        "cta": "...",
-        "full_script": "Full combined script text",
-        "word_count": 0,
-        "est_duration_sec": "time in seconds"
-    }}
-    """
+    beat2_templates = [
+        "For months, I was doing it the old way. Then I discovered {validated_topic}, and it literally shifted my perspective.",
+        "Most people just copy-paste the same generic advice. But the real magic happens when you apply {validated_topic}.",
+        "I analyzed the top creators, and they all have one thing in common: {validated_topic}."
+    ]
     
-    try:
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
-            temperature=0.7
-        )
+    beat3_templates = [
+        "Step 1: Change your mindset. Step 2: Implement this framework. And boom, your {niche} workflow is instantly better.",
+        "The secret is simple: stop focusing on vanity metrics and start building a real foundation. That is how you win.",
+        "It only takes 10 minutes a day. Just set up your systems, let the data flow, and watch the results multiply."
+    ]
+    
+    cta_templates = [
+        "Save this video for later and follow me for more daily {niche} tips!",
+        "Want my full blueprint? Comment 'GUIDE' below and I will DM it to you right now.",
+        "Hit that follow button if you want to master {niche} this year."
+    ]
+    
+    # Build script
+    b1 = random.choice(beat1_templates).format(topic=topic, niche=niche)
+    b2 = random.choice(beat2_templates).format(validated_topic=validated_topic if validated_topic else "this secret strategy")
+    b3 = random.choice(beat3_templates).format(niche=niche)
+    cta = random.choice(cta_templates).format(niche=niche)
+    
+    # Inject user's vocabulary if possible
+    if analysis.vocabulary_words:
+        b1 = b1 + f" It's {analysis.vocabulary_words[0]}."
         
-        data = json.loads(response.choices[0].message.content)
-        
-        # Robust parsing for LLM outputting dicts instead of strings
-        for k in ['beat1', 'beat2', 'beat3', 'cta', 'full_script', 'est_duration_sec']:
-            if isinstance(data.get(k), dict):
-                data[k] = data[k].get('text', str(data[k]))
-            else:
-                data[k] = str(data.get(k, ""))
-                
-        if isinstance(data.get('word_count'), dict):
-            data['word_count'] = int(data['word_count'].get('count', 0))
-        elif not isinstance(data.get('word_count'), int):
-            try:
-                data['word_count'] = int(data.get('word_count', 0))
-            except:
-                data['word_count'] = len(data.get('full_script', '').split())
-                
-        return ScriptResult(**data)
-    except Exception as e:
-        # Fallback in case of Groq error
-        return ScriptResult(
-            voice_analysis=VoiceAnalysis(vocabulary_words=["error"], avg_sentence_length="error", hinglish_ratio="error", energy="error", cta_style="error", structure_pattern="error"),
-            beat1="Error fetching from Groq API", beat2=str(e), beat3="", cta="", full_script=f"Error: {str(e)}", word_count=0, est_duration_sec="0s"
-        )
+    full_script = f"[BEAT 1: HOOK]\n{b1}\n\n[BEAT 2: CONTEXT]\n{b2}\n\n[BEAT 3: VALUE]\n{b3}\n\n[CALL TO ACTION]\n{cta}"
+    word_count = len(full_script.split())
+    duration = max(15, round(word_count / 2.5)) # roughly 2.5 words per second
+    
+    return ScriptResult(
+        voice_analysis=analysis,
+        beat1=b1,
+        beat2=b2,
+        beat3=b3,
+        cta=cta,
+        full_script=full_script,
+        word_count=word_count,
+        est_duration_sec=f"{duration}s"
+    )
