@@ -20,7 +20,7 @@ This project was built from scratch using a modern, decoupled architecture:
 
 - **Frontend (UI/UX):** Built with pure HTML, CSS, and Vanilla JavaScript for maximum performance and a beautiful, dark-mode glassmorphism aesthetic. Hosted on **Netlify**.
 - **Backend (API):** Built using **Python & FastAPI**. This serves as the brain of the operation, handling CORS, routing, and executing the agents asynchronously. Hosted on **Render**.
-- **AI / LLM Integration:** Powered by the **Groq API** running the `Llama3-8b-8192` model. Groq was chosen for its blazing-fast inference speeds, allowing the multi-agent pipeline to resolve in mere seconds.
+- **AI / LLM Integration:** The pipeline now runs entirely with deterministic, rule‑based logic – no external LLM API is used.
 
 ---
 
@@ -40,12 +40,12 @@ When a user clicks "Launch Pipeline," the backend triggers four sequential Pytho
 
 ### 3. Agent 03: The Voice Writer (`voice_writer.py`) ✍️
 - **Function:** Tone Matching & Script Generation.
-- **How it works:** This agent connects to the **Groq LLM**. It analyzes a provided sample of the creator's past scripts to extract their unique vocabulary, pacing, and Hinglish ratio.
+- **How it works:** This agent uses deterministic templates and internal voice analysis; it does not call an external LLM.
 - **Key Feature:** It forces the LLM to output a strict JSON format containing a 4-beat structural script (Intro → Context → Value → Call to Action) matching the creator's exact energy.
 
 ### 4. Agent 04: The Hook Generator (`hook_generator.py`) 🎣
 - **Function:** Psychological Hook Engineering.
-- **How it works:** Also powered by the Groq LLM, this agent takes the validated topic and generates exactly 5 distinct Hinglish hooks based on proven psychological frameworks (The Negative Warning, The Result Reveal, The Secret Hack, etc.).
+- **How it works:** This agent also relies on deterministic, rule‑based generation for Hinglish hooks; no external LLM is involved.
 - **Key Feature:** It assigns a "Confidence Score" out of 10 to each hook and recommends the absolute best one for the user.
 
 ---
@@ -59,12 +59,12 @@ If you are presenting this, here is the exact development journey:
 3. **Backend Foundation:** Spun up a Python FastAPI server (`main.py`). Defined Pydantic models to strictly type the data passing between the frontend and the AI agents.
 4. **Agent Engineering:** 
    - Wrote the Python logic for the Scraper and Validator to handle data manipulation and algorithmic scoring.
-   - Integrated the `openai` Python SDK (pointed at Groq's API) to build the Writer and Hook agents. Engineered strict system prompts forcing the LLMs to return pure JSON for seamless frontend rendering.
+   - Previously integrated the `openai` SDK for Groq; now the agents run locally without external API calls.
 5. **Connecting the Pieces:** Configured CORS middleware so the local frontend could speak to the backend, ensuring the pipeline flowed perfectly from Agent 1 to 4.
 6. **Deployment:** 
    - Initialized Git and pushed the code to GitHub.
    - Deployed the frontend to **Netlify** for global CDN delivery.
-   - Deployed the FastAPI backend to **Render**, mapping the environment variables (like the hidden `GROQ_API_KEY`) securely.
+   - Deployed the FastAPI backend to **Render**; no secret API keys are required.
    - Linked the Netlify frontend directly to the live Render API URL.
 
 ---
