@@ -22,27 +22,27 @@ HOOK_PATTERNS = [
     {
         "name": "The Negative Warning",
         "description": "Uses fear of missing out or doing something wrong.",
-        "template": "Stop doing {niche} like everyone else. If you want to master {topic}, avoid this mistake."
+        "template": "Stop doing {niche} like everyone else. Agar aapko {topic} samajhna hai, toh avoid this mistake."
     },
     {
         "name": "The Secret Hack",
         "description": "Promises insider knowledge that most people don't know.",
-        "template": "The 1% of {niche} creators don't want you to know this {topic} secret."
+        "template": "The 1% of creators won't tell you this secret about {topic}. Dhyan se suno."
     },
     {
         "name": "The Result Reveal",
         "description": "Shows the end result first to build curiosity.",
-        "template": "Here is exactly how I achieved massive success in {niche} using this {topic} strategy."
+        "template": "Here is exactly how I achieved massive success in {niche}. Ye {topic} strategy ne sab badal diya."
     },
     {
         "name": "The Contrarian Take",
         "description": "Goes against common advice to stand out.",
-        "template": "Everything you've been told about {topic} in {niche} is completely wrong."
+        "template": "Everything you've been told about {topic} is completely wrong. Let me explain kyun."
     },
     {
         "name": "The Fast-Track Promise",
         "description": "Offers a quick solution to a common problem.",
-        "template": "Give me 60 seconds and I'll show you the fastest way to learn {topic}."
+        "template": "Give me 60 seconds aur main aapko bataunga the fastest way to master {topic}."
     }
 ]
 
@@ -56,8 +56,11 @@ def generate_hooks(
     hooks = []
     
     # Generate exactly 5 hooks deterministically
+    clean_topic = topic.strip().capitalize()
+    clean_niche = niche.strip().capitalize()
+    
     for idx, pattern in enumerate(HOOK_PATTERNS):
-        hook_text = pattern["template"].format(topic=topic, niche=niche)
+        hook_text = pattern["template"].format(topic=clean_topic, niche=clean_niche)
         
         # Calculate a pseudo-deterministic confidence score based on pattern position
         # but slightly randomized for realism
