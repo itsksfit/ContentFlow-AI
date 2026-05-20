@@ -1,7 +1,7 @@
 # ContentFlow AI 🚀
 > **The smartest content strategy tool for Indian creators.**
 
-**Live Demo:** [https://ks-contentflow-ai.netlify.app/](https://ks-contentflow-ai.netlify.app/)  
+**Live Demo:** [https://content-flow-ai-lemon.vercel.app/](https://content-flow-ai-lemon.vercel.app/)  
 **Backend API:** [https://contentflow-ai.onrender.com](https://contentflow-ai.onrender.com)
 
 ---
