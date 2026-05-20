@@ -226,6 +226,18 @@ function renderResults(data) {
         `;
     });
 
+    let compHTML = '';
+    if(data.validation.competitor_insights && data.validation.competitor_insights.length > 0) {
+        compHTML = `
+            <div style="background:var(--card); padding:20px; border-radius:12px; margin-top:20px; border:1px solid var(--accent); box-shadow: 0 0 15px rgba(0,240,255,0.1);">
+                <h4 style="color:var(--accent); margin-bottom:12px;">🕵️ Competitor Analysis</h4>
+                <div style="font-size:0.9rem; color:var(--text); display:flex; flex-direction:column; gap:10px;">
+                    ${data.validation.competitor_insights.map(c => `<div>${c.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>')}</div>`).join('')}
+                </div>
+            </div>
+        `;
+    }
+
     document.getElementById('insightBox').innerHTML = `
         <div style="background:var(--card); padding:20px; border-radius:12px; margin-top:20px; border:1px solid var(--border);">
             <h4>📊 Validation Insights</h4>
@@ -235,6 +247,7 @@ function renderResults(data) {
                 <div><strong>Sustained Trends:</strong> ${data.validation.sustained_trends.join(', ') || 'None detected'}</div>
             </div>
         </div>
+        ${compHTML}
     `;
 
     // Tab 3: Script

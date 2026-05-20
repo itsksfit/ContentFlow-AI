@@ -78,7 +78,7 @@ def run_scraper(req: ScraperRequest):
 def run_validator(req: ValidatorRequest):
     try:
         posts = fetch_real_posts(req.niche, req.platform, req.competitors, req.days)
-        result = validate(posts)
+        result = validate(posts, req.competitors)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
