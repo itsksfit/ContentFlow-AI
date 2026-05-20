@@ -36,7 +36,7 @@ ContentFlow AI automates **all of this** in one pipeline.
 
 | Layer | Technology | Hosted On |
 |---|---|---|
-| **Frontend** | HTML + CSS + Vanilla JS | Netlify |
+| **Frontend** | HTML + CSS + Vanilla JS | Vercel |
 | **Backend** | Python + FastAPI | Render |
 | **Data Sources** | Reddit API + YouTube (yt-dlp) | Real-time |
 | **Scripting Logic** | Deterministic Hinglish templates | In-memory |
@@ -195,7 +195,7 @@ ContentFlow-AI/
 
 | Service | Purpose | URL |
 |---|---|---|
-| **Netlify** | Hosts the frontend (HTML/CSS/JS) | Auto-deploys from GitHub |
+| **Vercel** | Hosts the frontend (HTML/CSS/JS) | Auto-deploys from GitHub |
 | **Render** | Hosts the FastAPI backend | Free tier, spins up on request |
 
 > Note: The Render free tier may have a **cold start delay of ~30 seconds** on first load. This is normal — the loading animation covers it.
