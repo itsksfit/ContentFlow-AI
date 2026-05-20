@@ -67,106 +67,153 @@ def write_script(
     validated_topic: str,
 ) -> ScriptResult:
     analysis = analyze_voice(voice_sample)
-    
-    # Deterministic Templates (Flexible for any Niche/Vlog/Tips)
-    beat1_templates = [
-        "Let's talk about {topic}. Agar aap {niche} space mein ho, toh yeh aapke liye hai.",
-        "Sabse badi galti jo log {topic} mein karte hain? Woh basics ko ignore kar dete hain. Dhyan se suno.",
-        "Aaj main baat karne wala hoon about {topic}. Bina apna time waste kiye, sidhe point par aate hain."
-    ]
-    
-    beat2_templates = [
-        "Pehle mujhe bhi lagta tha it's too difficult. Then I realized the power of {validated_topic}, aur usne sab badal diya.",
-        "Most people just copy-paste the same old stuff. Woh purane methods ab kaam nahi aate. But the real game-changer is {validated_topic}.",
-        "If you look at the top creators, they all use {validated_topic} to their advantage. Yahi sach hai."
-    ]
-    
-    beat3_templates = [
-        "Step 1: Focus on the fundamentals. Step 2: Implement this consistently. Aur uske baad, you will see the difference.",
-        "The secret is simple: stop focusing on vanity metrics. Apna unique style develop karo. Tabhi aap lambe time tak jeetoge.",
-        "It only takes a little bit of consistency. Apne process ko set up karo, aur baaki sab apne aap flow hone lagega."
-    ]
-    
-    # Adding an extra beat for more content
-    beat4_templates = [
-        "Ek aur pro-tip: Don't overcomplicate things. Process ko simple rakho aur execute karo. That's how you stand out.",
-        "Yeh mind-set try karke dekho, I promise you won't regret it. Results aana shuru honge toh aap khud hairan rah jaoge.",
-        "Remember, {niche} mein success overnight nahi aati. Par agar aap apna 100% dete ho, nobody can stop you."
-    ]
-    
-    cta_templates = [
-        "Save this video for later, share it with your friends, aur aisi daily {niche} content ke liye mujhe follow karna mat bhoolna!",
-        "Kaisa laga yeh video? Comment karke batao. Aur haan, follow zaroor kar lena.",
-        "Hit that follow button agar aapko iss type ka content pasand hai."
-    ]
-    
-    # Clean inputs
-    import re as regex
-    clean_topic = regex.sub(r'\s+', ' ', topic).strip().capitalize()
-    clean_niche = regex.sub(r'\s+', ' ', niche).strip().capitalize()
-    if len(clean_topic) > 40:
-        clean_topic = clean_topic[:37] + "..."
 
-    # Tone-aware templates
+    # ── Clean inputs ─────────────────────────────────────────────────────────
+    import re as regex
+    clean_topic = regex.sub(r'\s+', ' ', topic).strip()
+    # Capitalise first letter only
+    clean_topic = clean_topic[0].upper() + clean_topic[1:] if clean_topic else "this topic"
+    clean_niche = regex.sub(r'\s+', ' ', niche).strip()
+    clean_niche = clean_niche[0].upper() + clean_niche[1:] if clean_niche else "your niche"
+
+    # Shorten topic if too long so it fits naturally in a sentence
+    if len(clean_topic) > 35:
+        # Use just the first 4 words for in-sentence use
+        short_topic = " ".join(clean_topic.split()[:4])
+    else:
+        short_topic = clean_topic
+
+    # Use validated_topic as a friendly label (e.g. "Tutorials & How-to")
+    # If empty or just the niche name, fall back to a safe phrase
+    trend_label = (validated_topic or "").strip()
+    if not trend_label or trend_label.lower() == clean_niche.lower():
+        trend_label = "this content style"
+
     tone_key = (tone or "casual").lower()
 
+    # ── Beat 1: HOOK ─────────────────────────────────────────────────────────
+    # Rule: topic is introduced in ENGLISH — never jammed into a Hindi verb phrase
     beat1_map = {
-        "educational":   "Ek cheez hai jo most {niche} creators completely miss kar dete hain about {topic}. Aaj main woh bata raha hoon.",
-        "inspirational": "Yaar, {topic} ne meri life badal di. Aur agar aap bhi {niche} mein seriously aana chahte ho, toh yeh sun lo.",
-        "entertaining":  "Okay so maine socha tha {topic} easy hoga. Spoiler alert — nahi tha. Par jo maine seekha, woh 🔥",
-        "professional":  "Let's break down {topic} properly. Agar aap {niche} mein results chahte ho, yeh framework follow karo.",
-        "controversial": "Hot take: {topic} ke baare mein jo sab bol rahe hain woh galat hai. Main proof ke saath baat karta hoon.",
-        "casual":        "Bhai sun, {topic} ke baare mein kuch baat karni thi. Agar aap {niche} mein ho, yeh relatable lagega.",
+        "educational":
+            f"Aaj hum baat karenge — \"{short_topic}\". Yeh ek cheez hai jo most {clean_niche} creators completely ignore kar dete hain.",
+        "inspirational":
+            f"Ek cheez hai jo maine recently discover ki — \"{short_topic}\". Aur isse meri {clean_niche} journey totally change ho gayi.",
+        "entertaining":
+            f"Maine socha tha \"{short_topic}\" easy hoga. Spoiler alert — bilkul nahi tha. 😭 But jo maine seekha, woh sun lo.",
+        "professional":
+            f"Today's topic: \"{short_topic}\". Agar aap {clean_niche} mein seriously results chahte ho, yeh framework note kar lo.",
+        "controversial":
+            f"Hot take incoming — \"{short_topic}\" ke baare mein jo sab kehte hain, woh mostly galat hai. Main data ke saath baat karta hoon.",
+        "casual":
+            f"Yaar, aaj ek cheez share karni thi — \"{short_topic}\". Agar aap {clean_niche} mein ho, yeh 100% relatable lagega.",
     }
+
+    # ── Beat 2: CONTEXT ───────────────────────────────────────────────────────
+    # Rule: trend_label is an English phrase — safe to use as object, not subject of Hindi verb
     beat2_map = {
-        "educational":   "Data yeh kehta hai: {validated_topic} woh format hai jo is waqt sabse zyada perform kar raha hai. Reason simple hai.",
-        "inspirational": "Maine bhi ek time pe struggle kiya. Phir {validated_topic} ne sab kuch badal diya — seriously.",
-        "entertaining":  "Toh maine try kiya {validated_topic}. Results? Bhai, main khud hairan tha. 😭",
-        "professional":  "Research shows {validated_topic} is dominating right now. Aur iska ek clear reason hai.",
-        "controversial": "Sach yeh hai: {validated_topic} use karne wale creators baaki sabse 3x aage hain. Kyun? Sun.",
-        "casual":        "Mujhe khud tab pata chala jab maine {validated_topic} seriously lena shuru kiya. Game changer tha yaar.",
+        "educational":
+            f"Data dekha toh pata chala — \"{trend_label}\" is the format that's actually performing right now. Reason? Audience isko relate karta hai.",
+        "inspirational":
+            f"Main bhi struggle karta tha. Tab maine \"{trend_label}\" try kiya — aur honestly, that changed everything for me.",
+        "entertaining":
+            f"So I tried \"{trend_label}\" and bhai, main khud shocked tha. Mujhe expect nahi tha ki itna difference padega. 😂",
+        "professional":
+            f"Current data shows \"{trend_label}\" is dominating the algorithm right now. Aur iska ek clear, logical reason hai.",
+        "controversial":
+            f"Sach yeh hai — creators jo \"{trend_label}\" use kar rahe hain, woh baaki sabse consistently 3x better perform kar rahe hain.",
+        "casual":
+            f"Tab mujhe samajh aaya jab maine \"{trend_label}\" seriously lena shuru kiya. Yaar, game changer tha — no joke.",
     }
+
+    # ── Beat 3: VALUE ─────────────────────────────────────────────────────────
+    # Rule: no topic/niche injection — pure advice, fully self-contained sentences
     beat3_map = {
-        "educational":   "Step 1 — Apna niche tight karo, sab ko please karna band karo. Step 2 — Ek format choose karo aur usmein master bano. Step 3 — Consistency hi aapki moat hai.",
-        "inspirational": "Bas ek kaam karo — roz ek video. Quality improve hoti rahegi. Aur ek din woh video aayegi jo sab kuch badal degi. I promise.",
-        "entertaining":  "Maine kya kiya? Maine literally apne phone ko tripod pe rakh ke 10 videos ek din mein shoot ki. Cringe? Haan. Worth it? Bilkul.",
-        "professional":  "Framework simple hai: Hook (3 sec) → Problem (10 sec) → Solution (30 sec) → CTA (5 sec). Yahi formula top creators use karte hain.",
-        "controversial": "Log views ke peechhe bhagte hain. Smart creators followers ke peechhe bhagte hain. Aur legendary creators community ke peechhe bhagte hain. Farak samajh lo.",
-        "casual":        "Honestly yaar, koi shortcut nahi hai. Par ek trick hai — apni life ko content banao. Log authenticity pe react karte hain, perfection pe nahi.",
+        "educational":
+            "Theek hai, yeh 3 steps follow karo:\n"
+            "Step 1 — Apna niche tight karo. Sab ko please karna band karo.\n"
+            "Step 2 — Ek hi format choose karo aur usmein master bano.\n"
+            "Step 3 — Consistency is your biggest weapon. Algorithm bhi wahi push karta hai jo regularly post karta hai.",
+        "inspirational":
+            "Bas ek commitment karo — roz ek piece of content. Perfect nahi, consistent. "
+            "Quality apne aap improve hogi. Aur ek din aisa video aayega jo sab kuch badal dega. I genuinely believe that.",
+        "entertaining":
+            "Maine literally apna phone ek tripod pe rakh ke 10 videos ek din mein shoot ki. "
+            "Cringe? Haan, thoda. Worth it? Absolutely. "
+            "Kyunki wahi se mujhe pata chala ki mera audience actually kya chahta hai.",
+        "professional":
+            "Yeh framework use karo — har video ke liye:\n"
+            "Hook: 0–3 seconds (attention grab)\n"
+            "Problem: 3–15 seconds (why this matters)\n"
+            "Solution: 15–45 seconds (the actual value)\n"
+            "CTA: last 5 seconds (one clear ask). Simple. Proven. Repeat.",
+        "controversial":
+            "Log views ke peechhe bhagte hain. Smart creators followers ke peechhe bhagte hain. "
+            "Aur actually successful creators community ke peechhe bhagte hain. "
+            "Yeh ek line samajh lo — baaki sab apne aap clear ho jayega.",
+        "casual":
+            "Honestly yaar, koi magic shortcut nahi hai. "
+            "Par ek chota sa shift hai jo sab kuch change kar deta hai — apni real life ko content banao. "
+            "Log perfection pe nahi, authenticity pe react karte hain. Aur woh aapke paas already hai.",
     }
+
+    # ── Beat 4: PRO-TIP ───────────────────────────────────────────────────────
     beat4_map = {
-        "educational":   "Pro tip: Apne top 3 posts ko dekho — woh format jo wahan hai, wahi aapka hero format hai. Wahi dobara banao, tweak karo, scale karo.",
-        "inspirational": "Ek baat yaad rakho — comparison sabse bada killer hai. Apna journey track karo, doosron ka nahi.",
-        "entertaining":  "Aur haan, agar yeh video aapko useful laga toh share karna mat bhoolna. Apne dost ko tag karo jisne abhi tak start nahi kiya. 😂",
-        "professional":  "Bonus: Har video ke baad 3 metrics track karo — Watch Time, Shares, aur Comments. Likes vanity metric hai. Baaki teen real signal hain.",
-        "controversial": "Agar aap agree nahi karte, comment mein batao. Mujhe genuine debate se koi darr nahi hai.",
-        "casual":        "Ek last cheez — {niche} mein woh log jeet rahe hain jo real hain, perfect nahi. So just show up, yaar.",
+        "educational":
+            f"Pro tip: Apne top 3 performing posts dekho. Jo format wahan repeat ho raha hai — wahi aapka hero format hai. "
+            f"Usi ko dobara banao, thoda tweak karo, aur scale karo. Yahi formula works in {clean_niche}.",
+        "inspirational":
+            "Ek last baat — comparison sabse bada creativity killer hai. "
+            "Doosron ko mat dekho. Apne aaj ko apne kal se compare karo. That's real progress.",
+        "entertaining":
+            "Aur haan — agar yeh video helpful laga, apne ek dost ko tag karo jisne abhi tak start nahi kiya. "
+            "Unka time aa gaya hai. 😂",
+        "professional":
+            "Bonus metric: Har video ke baad sirf 3 numbers track karo — Watch Time %, Shares, aur Comments. "
+            "Likes vanity metric hai. Baaki teen real signal hain jo algorithm ko bhi matter karte hain.",
+        "controversial":
+            "Agar aap agree nahi karte — perfect. Comment mein aao, debate karte hain. "
+            "Mujhe echo chamber nahi chahiye, mujhe real conversation chahiye.",
+        "casual":
+            f"Last thought — {clean_niche} mein jo log jeet rahe hain woh perfect nahi hain, woh real hain. "
+            "So bas show up karo. Roz. Wahi kaafi hai.",
     }
+
+    # ── CTA ───────────────────────────────────────────────────────────────────
     cta_map = {
-        "educational":   "Agar yeh helpful laga, save kar lo — aapko baar baar chahiye hoga. Aur follow karo for more {niche} tips.",
-        "inspirational": "Comment mein 'START' likho agar aap aaj se seriously lena chahte ho. Main personally reply karoonga.",
-        "entertaining":  "Follow karo for more {niche} chaos. Aur agar relate kiya, share zaroor karo! 😄",
-        "professional":  "For more structured {niche} content, follow karo. Aur comment mein batao — kaunsa step sabse helpful laga?",
-        "controversial": "Disagree ho toh comment mein batao. Agree ho toh share karo taaki yeh baat aur logo tak pahunche.",
-        "casual":        "Yaar acha laga toh follow karo — main roz aisa content dalta rehta hoon. Aur apne dosto ko tag karo!",
+        "educational":
+            f"Agar yeh helpful laga, video save kar lo — future mein kaam aayega. "
+            f"Aur agar aap {clean_niche} content regularly chahte ho, toh follow zaroor karo.",
+        "inspirational":
+            "Comment mein 'START' likho agar aap aaj se seriously lena chahte ho. Main personally reply karoonga — promise.",
+        "entertaining":
+            f"Follow karo for more {clean_niche} chaos and real talk. Aur agar relate kiya toh share karo — "
+            "shayad kisi aur ko bhi chahiye yeh. 😄",
+        "professional":
+            f"For more structured {clean_niche} breakdowns, follow karo. "
+            "Aur comment mein batao — kaunsa step aapke liye sabse helpful tha?",
+        "controversial":
+            "Agree ho toh share karo. Disagree ho toh comment mein aao. Dono welcome hain.",
+        "casual":
+            f"Yaar, acha laga toh follow karo — main roz aise hi real {clean_niche} content dalta hoon. "
+            "Aur apne dosto ko tag karo!",
     }
 
-    b1 = beat1_map.get(tone_key, beat1_map["casual"]).format(topic=clean_topic, niche=clean_niche)
-    b2 = beat2_map.get(tone_key, beat2_map["casual"]).format(validated_topic=validated_topic if validated_topic else "this approach")
-    b3 = beat3_map.get(tone_key, beat3_map["casual"])
-    b4 = beat4_map.get(tone_key, beat4_map["casual"]).format(niche=clean_niche)
-    cta = cta_map.get(tone_key, cta_map["casual"]).format(niche=clean_niche)
+    b1  = beat1_map.get(tone_key, beat1_map["casual"])
+    b2  = beat2_map.get(tone_key, beat2_map["casual"])
+    b3  = beat3_map.get(tone_key, beat3_map["casual"])
+    b4  = beat4_map.get(tone_key, beat4_map["casual"])
+    cta = cta_map.get(tone_key,   cta_map["casual"])
 
-    
-    # Inject user's vocabulary naturally if possible
-    if analysis.vocabulary_words:
-        vocab_word = analysis.vocabulary_words[0].capitalize()
-        b1 = b1 + f" Aur main hamesha yahi kehta hoon: '{vocab_word}' is everything."
-        
-    full_script = f"[BEAT 1: HOOK]\n{b1}\n\n[BEAT 2: CONTEXT]\n{b2}\n\n[BEAT 3: VALUE]\n{b3}\n\n[BEAT 4: EXTRA PRO-TIP]\n{b4}\n\n[CALL TO ACTION]\n{cta}"
+    full_script = (
+        f"[BEAT 1: HOOK]\n{b1}\n\n"
+        f"[BEAT 2: CONTEXT]\n{b2}\n\n"
+        f"[BEAT 3: VALUE]\n{b3}\n\n"
+        f"[BEAT 4: PRO-TIP]\n{b4}\n\n"
+        f"[CALL TO ACTION]\n{cta}"
+    )
     word_count = len(full_script.split())
-    duration = max(15, round(word_count / 2.5)) # roughly 2.5 words per second
-    
+    duration   = max(15, round(word_count / 2.5))
+
     return ScriptResult(
         voice_analysis=analysis,
         beat1=b1,
