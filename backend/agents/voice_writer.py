@@ -68,42 +68,48 @@ def write_script(
 ) -> ScriptResult:
     analysis = analyze_voice(voice_sample)
     
-    # Deterministic Templates (Longer & Mixed Hinglish)
+    # Deterministic Templates (Flexible for any Niche/Vlog/Tips)
     beat1_templates = [
-        "Let's talk about {topic}. Agar aap {niche} space mein grow karna chahte ho, toh you need to hear this right now.",
-        "The biggest mistake I see with {topic}? Log basics ko completely ignore kar dete hain. Aur wahi unki growth rokta hai.",
-        "I'm going to show you exactly how to handle {topic}. Bina apna time waste kiye, yahan dhyan do."
+        "Let's talk about {topic}. Agar aap {niche} space mein ho, toh yeh aapke liye hai.",
+        "Sabse badi galti jo log {topic} mein karte hain? Woh basics ko ignore kar dete hain. Dhyan se suno.",
+        "Aaj main baat karne wala hoon about {topic}. Bina apna time waste kiye, sidhe point par aate hain."
     ]
     
     beat2_templates = [
-        "For a long time, I struggled with this too. Mujhe lagta tha it's too difficult. Then I realized the power of {validated_topic}, aur usne sab badal diya.",
-        "Most people just copy-paste the same generic advice. Woh purane methods ab kaam nahi aate. But the real game-changer is {validated_topic}.",
-        "If you look at the top creators, they all use {validated_topic} to their advantage. Woh yeh secret aapko nahi batate, par yahi sach hai."
+        "Pehle mujhe bhi lagta tha it's too difficult. Then I realized the power of {validated_topic}, aur usne sab badal diya.",
+        "Most people just copy-paste the same old stuff. Woh purane methods ab kaam nahi aate. But the real game-changer is {validated_topic}.",
+        "If you look at the top creators, they all use {validated_topic} to their advantage. Yahi sach hai."
     ]
     
     beat3_templates = [
-        "Step 1: Focus on the fundamentals. Apni foundation strong karo. Step 2: Implement this system consistently. Aur uske baad, watch your results multiply overnight.",
-        "The secret is simple: stop focusing on vanity metrics. Views aur likes ke peechhe mat bhago. Start building a real foundation. Tabhi aap lambe time tak jeetoge.",
-        "It only takes 10 minutes a day. Apne systems ko properly set up karo, aur baaki sab apne aap flow hone lagega. Consistency is everything."
+        "Step 1: Focus on the fundamentals. Step 2: Implement this consistently. Aur uske baad, you will see the difference.",
+        "The secret is simple: stop focusing on vanity metrics. Apna unique style develop karo. Tabhi aap lambe time tak jeetoge.",
+        "It only takes a little bit of consistency. Apne process ko set up karo, aur baaki sab apne aap flow hone lagega."
     ]
     
     # Adding an extra beat for more content
     beat4_templates = [
-        "Ek aur pro-tip: Don't overcomplicate things. Process ko simple rakho aur execute karo. That's the only way to beat the algorithm.",
-        "Yeh method try karke dekho, I promise you won't regret it. Results aana shuru honge toh aap khud hairan rah jaoge.",
-        "Remember, {niche} mein success overnight nahi aati. Par agar aap yeh framework use karte ho, aap apne competitors se 10x aage nikal jaoge."
+        "Ek aur pro-tip: Don't overcomplicate things. Process ko simple rakho aur execute karo. That's how you stand out.",
+        "Yeh mind-set try karke dekho, I promise you won't regret it. Results aana shuru honge toh aap khud hairan rah jaoge.",
+        "Remember, {niche} mein success overnight nahi aati. Par agar aap apna 100% dete ho, nobody can stop you."
     ]
     
     cta_templates = [
-        "Save this video for later, share it with your friends, aur aisi daily {niche} tips ke liye mujhe follow karna mat bhoolna!",
-        "Want the full blueprint? Comment 'GUIDE' niche, and I will DM it to you right now. Aur haan, follow zaroor kar lena.",
-        "Hit that follow button agar aap iss saal sach mein grow karna chahte ho."
+        "Save this video for later, share it with your friends, aur aisi daily {niche} content ke liye mujhe follow karna mat bhoolna!",
+        "Kaisa laga yeh video? Comment karke batao. Aur haan, follow zaroor kar lena.",
+        "Hit that follow button agar aapko iss type ka content pasand hai."
     ]
     
     # Build script (cleaned inputs)
-    clean_topic = topic.strip().capitalize()
-    clean_niche = niche.strip().capitalize()
+    # Remove newlines and extra spaces
+    import re as regex
+    clean_topic = regex.sub(r'\s+', ' ', topic).strip().capitalize()
+    clean_niche = regex.sub(r'\s+', ' ', niche).strip().capitalize()
     
+    # Limit length so it doesn't sound awkward if they pasted a whole paragraph
+    if len(clean_topic) > 40:
+        clean_topic = clean_topic[:37] + "..."
+        
     b1 = random.choice(beat1_templates).format(topic=clean_topic, niche=clean_niche)
     b2 = random.choice(beat2_templates).format(validated_topic=validated_topic if validated_topic else "this exact strategy")
     b3 = random.choice(beat3_templates)
@@ -112,7 +118,8 @@ def write_script(
     
     # Inject user's vocabulary naturally if possible
     if analysis.vocabulary_words:
-        b1 = b1 + f" And honestly, yeh strictly {analysis.vocabulary_words[0]} hai."
+        vocab_word = analysis.vocabulary_words[0].capitalize()
+        b1 = b1 + f" Aur main hamesha yahi kehta hoon: '{vocab_word}' is everything."
         
     full_script = f"[BEAT 1: HOOK]\n{b1}\n\n[BEAT 2: CONTEXT]\n{b2}\n\n[BEAT 3: VALUE]\n{b3}\n\n[BEAT 4: EXTRA PRO-TIP]\n{b4}\n\n[CALL TO ACTION]\n{cta}"
     word_count = len(full_script.split())
