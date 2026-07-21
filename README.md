@@ -7,7 +7,6 @@
 ---
 
 ## 🤔 What is ContentFlow AI?
-
 ContentFlow AI is a **4-agent AI pipeline** designed for content creators — especially in the Indian/Hinglish creator space. You enter your niche, your topic, and a sample of how you talk. Within seconds, the system:
 
 1. **Pulls real-time trending data** from Reddit & YouTube
